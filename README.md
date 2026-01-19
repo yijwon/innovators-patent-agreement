@@ -121,6 +121,14 @@ python -m hlt_converter.cli 입력파일.md
 
 출력 파일은 기본적으로 `<입력파일>.hlt`로 생성됩니다.
 
+### HTML 방식 실행
+
+브라우저 기반 UI로 사용하려면 아래 명령을 실행한 뒤 `http://localhost:8000`에 접속하세요.
+
+```bash
+python -m hlt_converter.web_app
+```
+
 ### 입력 포맷별 요구 사항
 
 - Word(`.docx`): 추가 설치 없이 처리됩니다.
