@@ -111,7 +111,7 @@ For attribution requirements:
 
 ## HLT 변환 도구 (한국특허 명세서 포맷)
 
-이 저장소에는 다양한 파일 형식을 한국특허 명세서 생성 포맷인 HLT로 변환하는 간단한 CLI 도구가 포함되어 있습니다. 기본적으로 Markdown과 텍스트 파일을 지원하며, 섹션 제목을 인식해 HLT 구조로 매핑합니다.
+이 저장소에는 다양한 파일 형식을 한국특허 명세서 생성 포맷인 HLT로 변환하는 간단한 CLI 도구가 포함되어 있습니다. Markdown, 텍스트, Word(docx), PDF, HWP 파일을 지원하며, 섹션 제목을 인식해 HLT 구조로 매핑합니다.
 
 ### 설치 및 실행
 
@@ -120,6 +120,12 @@ python -m hlt_converter.cli 입력파일.md
 ```
 
 출력 파일은 기본적으로 `<입력파일>.hlt`로 생성됩니다.
+
+### 입력 포맷별 요구 사항
+
+- Word(`.docx`): 추가 설치 없이 처리됩니다.
+- PDF(`.pdf`): `pypdf` 설치가 필요합니다. (`pip install pypdf`)
+- HWP(`.hwp`): `hwp5txt` 도구가 필요합니다. `pyhwp` 설치로 제공됩니다. (`pip install pyhwp`)
 
 ### 옵션
 

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .hlt_writer import write_hlt
 from .parsers import parse_file
+from .extractors import ExtractionError
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,7 +43,10 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"Source file not found: {args.source}")
 
     output_path = args.output or args.source.with_suffix(".hlt")
-    sections = parse_file(args.source)
+    try:
+        sections = parse_file(args.source)
+    except ExtractionError as exc:
+        parser.error(str(exc))
     write_hlt(
         output_path,
         sections,

@@ -27,10 +27,11 @@ def render_hlt(
     lines.append("")
 
     for key, content_lines in sections.items():
+        if not content_lines:
+            continue
         lines.append(f"@SECTION {key}")
         lines.append(f"# {section_title(key)}")
-        if content_lines:
-            lines.extend(content_lines)
+        lines.extend(content_lines)
         lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
