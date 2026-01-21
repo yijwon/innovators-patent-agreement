@@ -106,3 +106,10 @@ This work is licensed under a [Creative Commons Attribution 3.0 Unported License
 For attribution requirements:
 
 "Innovators Patent Agreement" © 2012 Twitter, Inc, used under a Creative Commons Attribution Unported license: http://creativecommons.org/licenses/by/3.0/
+
+---
+
+## Prior Art Search Prototype
+
+Looking for a starting point for a prior art search app? See `app/README.md` for a lightweight
+prototype that accepts document uploads and returns similar patents from a small example corpus.
