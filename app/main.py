@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from extractors import get_extractor
 from search import find_similar_patents, load_patents
@@ -11,16 +11,14 @@ from search import find_similar_patents, load_patents
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_PATH = BASE_DIR / "data" / "patents.json"
+UI_PATH = BASE_DIR / "ui.html"
 
 app = FastAPI(title="Patent Prior Art Search")
 
 
-@app.get("/")
-async def root() -> dict[str, str]:
-    return {
-        "message": "Upload a document to search similar patents.",
-        "supported_extensions": "docx, pdf, pptx, xlsx, csv, txt",
-    }
+@app.get("/", response_class=HTMLResponse)
+async def root() -> HTMLResponse:
+    return HTMLResponse(UI_PATH.read_text(encoding="utf-8"))
 
 
 @app.post("/upload")

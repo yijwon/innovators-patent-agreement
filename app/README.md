@@ -2,13 +2,15 @@
 
 This folder contains a lightweight prototype for a prior art search service. It accepts uploads
 (DOCX, PDF, PPTX, XLSX/CSV, or TXT) and returns the most similar patents based on TF-IDF cosine
-similarity against a small example corpus.
+similarity against a small example corpus. A simple HTML interface is included and optimized for
+mobile browsers.
 
 ## Features
 
 - Upload office documents and extract text.
 - Rank similar patents from a JSON corpus.
 - JSON API suitable for prototyping a UI or external integrations.
+- Mobile-friendly HTML upload and results view.
 
 ## Getting Started
 
@@ -28,6 +30,10 @@ curl -X POST "http://127.0.0.1:8000/upload" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@/path/to/document.pdf"
 ```
+
+## Web UI
+
+Visit `http://127.0.0.1:8000/` in a desktop or mobile browser to use the upload interface.
 
 ## Notes
 
