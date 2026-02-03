@@ -1,0 +1,32 @@
+[
+  {
+    "patent_id": "US-2021-000001",
+    "title": "Document similarity retrieval for patent prior art",
+    "abstract": "Techniques for computing similarity between uploaded technical documents and a corpus of patent abstracts to support prior art searches.",
+    "url": "https://example.com/patents/US-2021-000001"
+  },
+  {
+    "patent_id": "US-2020-000002",
+    "title": "System for semantic search over intellectual property assets",
+    "abstract": "A system that indexes intellectual property documents and applies vector similarity metrics to identify related patents.",
+    "url": "https://example.com/patents/US-2020-000002"
+  },
+  {
+    "patent_id": "US-2019-000003",
+    "title": "Optical character recognition for technical drawings",
+    "abstract": "Methods for extracting text from technical drawings and converting the output into searchable text for patent analysis.",
+    "url": "https://example.com/patents/US-2019-000003"
+  },
+  {
+    "patent_id": "US-2018-000004",
+    "title": "Automated classification of invention disclosures",
+    "abstract": "An automated pipeline for classifying invention disclosures and mapping them to patent classification codes.",
+    "url": "https://example.com/patents/US-2018-000004"
+  },
+  {
+    "patent_id": "US-2017-000005",
+    "title": "Cloud-based workflow for patent filing management",
+    "abstract": "A workflow system that manages patent filing tasks, document storage, and legal review approvals.",
+    "url": "https://example.com/patents/US-2017-000005"
+  }
+]
