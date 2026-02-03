@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
 import cgi
 import html
 import os
 import tempfile
+import webbrowser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -26,11 +28,20 @@ HTML_PAGE = """<!doctype html>
       input[type="text"] { width: 100%; padding: 0.5rem; }
       button { padding: 0.6rem 1rem; }
       .note { color: #555; font-size: 0.9rem; }
+      .steps { background: #f6f6f6; padding: 0.75rem; border-radius: 8px; }
     </style>
   </head>
   <body>
     <h1>HLT 변환기</h1>
     <p class="note">Word(.docx), PDF, HWP, Markdown, 텍스트 파일을 HLT 포맷으로 변환합니다.</p>
+    <div class="steps">
+      <strong>사용 방법</strong>
+      <ol>
+        <li>파일을 선택합니다.</li>
+        <li>필요하면 발명의 명칭/언어를 입력합니다.</li>
+        <li>아래 버튼 한 번 클릭으로 HLT를 다운로드합니다.</li>
+      </ol>
+    </div>
     <form action="/convert" method="post" enctype="multipart/form-data">
       <div>
         <label for="file">입력 파일</label><br />
@@ -130,9 +141,25 @@ class HLTRequestHandler(BaseHTTPRequestHandler):
         )
 
 
-def main() -> None:
-    server = HTTPServer(("0.0.0.0", 8000), HLTRequestHandler)
-    print("HLT converter running at http://localhost:8000")
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Run the HLT web converter.")
+    parser.add_argument("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=8000, help="Bind port (default: 8000)")
+    parser.add_argument(
+        "--no-open",
+        action="store_true",
+        help="Do not open the browser automatically",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = build_parser().parse_args(argv)
+    server = HTTPServer((args.host, args.port), HLTRequestHandler)
+    url = f"http://localhost:{args.port}"
+    print(f"HLT converter running at {url}")
+    if not args.no_open:
+        webbrowser.open(url)
     server.serve_forever()
 
 

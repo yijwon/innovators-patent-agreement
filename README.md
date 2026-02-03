@@ -123,10 +123,19 @@ python -m hlt_converter.cli 입력파일.md
 
 ### HTML 방식 실행
 
-브라우저 기반 UI로 사용하려면 아래 명령을 실행한 뒤 `http://localhost:8000`에 접속하세요.
+브라우저 기반 UI로 사용하려면 아래 명령을 실행한 뒤 `http://localhost:8000`에 접속하세요. 실행하면 브라우저가 자동으로 열립니다.
 
 ```bash
 python -m hlt_converter.web_app
+```
+
+#### 버튼 하나로 실행 (초보자용)
+
+- Windows: `run_hlt_web_app.bat` 더블클릭
+- macOS/Linux: `run_hlt_web_app.sh` 더블클릭 또는 터미널에서 실행
+
+```bash
+./run_hlt_web_app.sh
 ```
 
 ### 입력 포맷별 요구 사항
