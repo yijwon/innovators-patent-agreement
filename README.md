@@ -106,3 +106,50 @@ This work is licensed under a [Creative Commons Attribution 3.0 Unported License
 For attribution requirements:
 
 "Innovators Patent Agreement" © 2012 Twitter, Inc, used under a Creative Commons Attribution Unported license: http://creativecommons.org/licenses/by/3.0/
+
+---
+
+## HLT 변환 도구 (한국특허 명세서 포맷)
+
+이 저장소에는 다양한 파일 형식을 한국특허 명세서 생성 포맷인 HLT로 변환하는 간단한 CLI 도구가 포함되어 있습니다. Markdown, 텍스트, Word(docx), PDF, HWP 파일을 지원하며, 섹션 제목을 인식해 HLT 구조로 매핑합니다.
+
+### 설치 및 실행
+
+```bash
+python -m hlt_converter.cli 입력파일.md
+```
+
+출력 파일은 기본적으로 `<입력파일>.hlt`로 생성됩니다.
+
+### HTML 방식 실행
+
+브라우저 기반 UI로 사용하려면 아래 명령을 실행한 뒤 `http://localhost:8000`에 접속하세요. 실행하면 브라우저가 자동으로 열립니다.
+
+```bash
+python -m hlt_converter.web_app
+```
+
+#### 버튼 하나로 실행 (초보자용)
+
+- Windows: `run_hlt_web_app.bat` 더블클릭
+- macOS/Linux: `run_hlt_web_app.sh` 더블클릭 또는 터미널에서 실행
+
+```bash
+./run_hlt_web_app.sh
+```
+
+### 입력 포맷별 요구 사항
+
+- Word(`.docx`): 추가 설치 없이 처리됩니다.
+- PDF(`.pdf`): `pypdf` 설치가 필요합니다. (`pip install pypdf`)
+- HWP(`.hwp`): `hwp5txt` 도구가 필요합니다. `pyhwp` 설치로 제공됩니다. (`pip install pyhwp`)
+
+### 옵션
+
+```bash
+python -m hlt_converter.cli 입력파일.md --title "발명의 명칭" --language ko --output 결과.hlt
+```
+
+### HLT 포맷 정의
+
+세부 포맷과 섹션 정의는 `docs/hlt_format.md`를 참고하세요.
