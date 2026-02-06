@@ -106,3 +106,7 @@ This work is licensed under a [Creative Commons Attribution 3.0 Unported License
 For attribution requirements:
 
 "Innovators Patent Agreement" © 2012 Twitter, Inc, used under a Creative Commons Attribution Unported license: http://creativecommons.org/licenses/by/3.0/
+
+
+## Korean prototype
+A Korean web prototype for converting Word/HWP drafts to HLT-like XML is available at `web-converter.html` (see `README.ko.md`).
