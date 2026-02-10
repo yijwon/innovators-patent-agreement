@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word/HWP → HLT 변환 웹페이지</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; line-height: 1.5; padding: 0 20px; }
+    .dropzone { border: 2px dashed #5b5bd6; border-radius: 12px; padding: 32px; text-align: center; background: #f7f8ff; color: #1f2350; }
+    .dropzone.drag { background: #eaedff; }
+    button { margin-top: 16px; padding: 10px 16px; border-radius: 8px; border: 0; background: #5b5bd6; color: white; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    pre { white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: #fafafa; max-height: 300px; overflow: auto; }
+    .warn { color: #9a3d00; }
+    .ok { color: #186a1f; }
+  </style>
+</head>
+<body>
+  <h1>Word/HWP → HLT 변환 웹페이지</h1>
+  <p>웹페이지에서 파일을 드래그 앤 드롭하면 즉시 변환을 시작하고 <code>.hlt</code> 파일을 내려받습니다.<br/>지원: <b>.docx</b>, <b>.hwpx</b>, <b>.txt</b> (구형 <b>.hwp</b>는 바이너리 형식이라 별도 엔진이 필요)</p>
+
+  <div id="dropzone" class="dropzone">
+    여기에 파일을 놓거나
+    <input id="fileInput" type="file" accept=".docx,.hwpx,.txt,.hwp" />
+    <div id="fileInfo"></div>
+    <button id="convertBtn" disabled>수동으로 다시 변환</button>
+  </div>
+
+  <p id="status"></p>
+  <h3>미리보기</h3>
+  <pre id="preview">아직 변환 전입니다.</pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script>
+    const sectionRules = [
+      { key: '발명의 명칭', regex: /(발명의\s*명칭|명칭)/i },
+      { key: '기술분야', regex: /(기술\s*분야|기술분야)/i },
+      { key: '배경기술', regex: /(배경\s*기술|종래기술)/i },
+      { key: '발명의 내용', regex: /(발명의\s*내용|해결하려는\s*과제|과제\s*해결\s*수단|발명의\s*효과)/i },
+      { key: '도면의 간단한 설명', regex: /(도면의\s*간단한\s*설명)/i },
+      { key: '발명을 실시하기 위한 구체적인 내용', regex: /(발명을\s*실시하기\s*위한\s*구체적인\s*내용|실시예|구체적\s*내용)/i },
+      { key: '청구범위', regex: /(청구\s*범위|청구항|특허청구범위)/i },
+      { key: '요약', regex: /(요약|초록)/i }
+    ];
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const convertBtn = document.getElementById('convertBtn');
+    const statusEl = document.getElementById('status');
+    const preview = document.getElementById('preview');
+    let selectedFile = null;
+
+    function setStatus(msg, type='ok') {
+      statusEl.textContent = msg;
+      statusEl.className = type;
+    }
+
+    function escapeXml(text='') {
+      return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    async function convert(file) {
+      if (!file) return;
+      try {
+        setStatus('변환 중...');
+        const raw = await extractText(file);
+        const sections = parseSections(raw);
+        const hlt = createHlt(sections, file.name);
+        preview.textContent = hlt;
+        const name = file.name.replace(/\.(docx|hwpx|txt)$/i, '') + '.hlt';
+        download(hlt, name);
+        setStatus('변환 완료: HLT 파일 다운로드가 시작되었습니다.', 'ok');
+      } catch (err) {
+        setStatus(`오류: ${err.message}`, 'warn');
+      }
+    }
+
+    function chooseFile(file) {
+      selectedFile = file;
+      fileInfo.textContent = file ? `선택됨: ${file.name} (${Math.round(file.size/1024)}KB)` : '';
+      convertBtn.disabled = !file;
+      setStatus('');
+    }
+
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      const file = e.dataTransfer.files[0];
+      chooseFile(file);
+      convert(file);
+    });
+    fileInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      chooseFile(file);
+      convert(file);
+    });
+
+    async function extractFromDocx(file) {
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const xml = await zip.file('word/document.xml')?.async('text');
+      if (!xml) throw new Error('DOCX 본문을 찾지 못했습니다.');
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      const texts = [...doc.getElementsByTagName('w:t')].map(n => n.textContent || '');
+      return texts.join('\n');
+    }
+
+    async function extractFromHwpx(file) {
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const sectionFile = Object.keys(zip.files).find(name => /Contents\/section\d+\.xml$/i.test(name));
+      if (!sectionFile) throw new Error('HWPX 본문(section*.xml)을 찾지 못했습니다.');
+      const xml = await zip.file(sectionFile).async('text');
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      const texts = [...doc.getElementsByTagName('*')]
+        .filter(n => n.childNodes.length === 1 && n.childNodes[0].nodeType === Node.TEXT_NODE)
+        .map(n => n.textContent?.trim() || '')
+        .filter(Boolean);
+      return texts.join('\n');
+    }
+
+    async function extractText(file) {
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.txt')) return await file.text();
+      if (name.endsWith('.docx')) return await extractFromDocx(file);
+      if (name.endsWith('.hwpx')) return await extractFromHwpx(file);
+      if (name.endsWith('.hwp')) throw new Error('.hwp(바이너리)는 브라우저 단독 변환이 어려워 서버 OCR/파서 연동이 필요합니다.');
+      throw new Error('지원하지 않는 확장자입니다.');
+    }
+
+    function parseSections(raw) {
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const sections = Object.fromEntries(sectionRules.map(r => [r.key, '']));
+      let current = '발명을 실시하기 위한 구체적인 내용';
+
+      for (const line of lines) {
+        const matched = sectionRules.find(r => r.regex.test(line));
+        if (matched) {
+          current = matched.key;
+          continue;
+        }
+        sections[current] += (sections[current] ? '\n' : '') + line;
+      }
+      return sections;
+    }
+
+    function createHlt(sections, sourceName) {
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<HLTDocument version="prototype-0.1">\n  <meta>\n    <source>${escapeXml(sourceName)}</source>\n    <generatedAt>${new Date().toISOString()}</generatedAt>\n  </meta>\n  <specification>\n${Object.entries(sections).map(([k,v]) => `    <section name="${escapeXml(k)}">${escapeXml(v)}</section>`).join('\n')}\n  </specification>\n</HLTDocument>`;
+    }
+
+    function download(content, filename) {
+      const blob = new Blob([content], { type: 'application/xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    convertBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      await convert(selectedFile);
+    });
+  </script>
+</body>
+</html>
