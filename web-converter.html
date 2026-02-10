@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Word/HWP → HLT 변환기 (프로토타입)</title>
+  <title>Word/HWP → HLT 변환 웹페이지</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; line-height: 1.5; padding: 0 20px; }
     .dropzone { border: 2px dashed #5b5bd6; border-radius: 12px; padding: 32px; text-align: center; background: #f7f8ff; color: #1f2350; }
@@ -16,14 +16,14 @@
   </style>
 </head>
 <body>
-  <h1>Word/HWP → HLT 변환기 (프로토타입)</h1>
-  <p>파일을 드래그 앤 드롭하면 섹션을 자동 추출해 <code>.hlt</code> 파일로 내려받습니다.<br/>지원: <b>.docx</b>, <b>.hwpx</b>, <b>.txt</b> (구형 <b>.hwp</b>는 바이너리 형식이라 별도 엔진이 필요)</p>
+  <h1>Word/HWP → HLT 변환 웹페이지</h1>
+  <p>웹페이지에서 파일을 드래그 앤 드롭하면 즉시 변환을 시작하고 <code>.hlt</code> 파일을 내려받습니다.<br/>지원: <b>.docx</b>, <b>.hwpx</b>, <b>.txt</b> (구형 <b>.hwp</b>는 바이너리 형식이라 별도 엔진이 필요)</p>
 
   <div id="dropzone" class="dropzone">
     여기에 파일을 놓거나
-    <input id="fileInput" type="file" accept=".docx,.hwpx,.txt" />
+    <input id="fileInput" type="file" accept=".docx,.hwpx,.txt,.hwp" />
     <div id="fileInfo"></div>
-    <button id="convertBtn" disabled>HLT로 변환</button>
+    <button id="convertBtn" disabled>수동으로 다시 변환</button>
   </div>
 
   <p id="status"></p>
@@ -60,6 +60,22 @@
       return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     }
 
+    async function convert(file) {
+      if (!file) return;
+      try {
+        setStatus('변환 중...');
+        const raw = await extractText(file);
+        const sections = parseSections(raw);
+        const hlt = createHlt(sections, file.name);
+        preview.textContent = hlt;
+        const name = file.name.replace(/\.(docx|hwpx|txt)$/i, '') + '.hlt';
+        download(hlt, name);
+        setStatus('변환 완료: HLT 파일 다운로드가 시작되었습니다.', 'ok');
+      } catch (err) {
+        setStatus(`오류: ${err.message}`, 'warn');
+      }
+    }
+
     function chooseFile(file) {
       selectedFile = file;
       fileInfo.textContent = file ? `선택됨: ${file.name} (${Math.round(file.size/1024)}KB)` : '';
@@ -72,9 +88,15 @@
     dropzone.addEventListener('drop', e => {
       e.preventDefault();
       dropzone.classList.remove('drag');
-      chooseFile(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      chooseFile(file);
+      convert(file);
     });
-    fileInput.addEventListener('change', e => chooseFile(e.target.files[0]));
+    fileInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      chooseFile(file);
+      convert(file);
+    });
 
     async function extractFromDocx(file) {
       const zip = await JSZip.loadAsync(await file.arrayBuffer());
@@ -139,18 +161,7 @@
 
     convertBtn.addEventListener('click', async () => {
       if (!selectedFile) return;
-      try {
-        setStatus('변환 중...');
-        const raw = await extractText(selectedFile);
-        const sections = parseSections(raw);
-        const hlt = createHlt(sections, selectedFile.name);
-        preview.textContent = hlt;
-        const name = selectedFile.name.replace(/\.(docx|hwpx|txt)$/i, '') + '.hlt';
-        download(hlt, name);
-        setStatus('변환 완료: HLT 파일 다운로드가 시작되었습니다.', 'ok');
-      } catch (err) {
-        setStatus(`오류: ${err.message}`, 'warn');
-      }
+      await convert(selectedFile);
     });
   </script>
 </body>
