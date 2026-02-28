@@ -1,5 +1,9 @@
 ## Innovators Patent Agreement
 
+### Additional resource
+
+- Korean Why execution template (1-page): [why-execution-template.ko.md](why-execution-template.ko.md)
+
 The [Innovators Patent Agreement](https://github.com/twitter/innovators-patent-agreement/blob/master/innovators-patent-agreement.md) (IPA) is a new way to do patent assignment that keeps control in the hands of engineers and designers. 
 It is a commitment from a company to its employees that patents can only be used for defensive purposes. 
 The company will not use the patents in offensive litigation without the permission of the inventors. 
